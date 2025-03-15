@@ -113,30 +113,34 @@ const Background = forwardRef<HTMLDivElement, BackgroundProps>(
     }, []);
 
     useEffect(() => {
-      let animationFrameId: number;
+    let animationFrameId: number;
 
-      const updateSmoothPosition = () => {
+    const updateSmoothPosition = () => {
         setSmoothPosition((prev) => {
-          const dx = cursorPosition.x - prev.x;
-          const dy = cursorPosition.y - prev.y;
-          const easingFactor = 0.05;
+            const dx = cursorPosition.x - prev.x;
+            const dy = cursorPosition.y - prev.y;
+            const easingFactor = 0.05;
 
-          return {
-            x: Math.round(prev.x + dx * easingFactor),
-            y: Math.round(prev.y + dy * easingFactor),
-          };
+            //Limit the change in position if it is not neccesary. Due to this error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite 
+            if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+                return {
+                    x: Math.round(prev.x + dx * easingFactor),
+                    y: Math.round(prev.y + dy * easingFactor),
+                };
+            }
+            return prev; // No update if the change is too small
         });
         animationFrameId = requestAnimationFrame(updateSmoothPosition);
-      };
+    };
 
-      if (mask.cursor) {
+    if (mask === 'cursor') {
         animationFrameId = requestAnimationFrame(updateSmoothPosition);
-      }
+    }
 
-      return () => {
+    return () => {
         cancelAnimationFrame(animationFrameId);
-      };
-    }, [cursorPosition, mask]);
+    };
+}, [cursorPosition, mask]);
 
     const maskStyle = (): CSSProperties => {
       if (!mask) return {};
